@@ -52,28 +52,30 @@ def make_vocabulary(vocab_size:int, counter:Counter):
 def return_with_target(vocab_size:int):
 	vocabulary = make_vocabulary(vocab_size, counter)
 
-	def make_vector(path: Path, vocab_size: int, target: float):
+	def make_vector(path: Path, vocab_size:int, target: float):
 		lines = token_freq(path)
 		vocab_values = [value[0] for value in vocabulary.values()]
-		# print(vocab_values)
-		for line in lines:
-			vector = [0] * len(line)
-			for index, pair in enumerate(line):
+		# print(type(vocab_values))
+		for sentence in lines:
+			# print(sentence)
+			vector = [0] * len(sentence) 	# vector = np.zeros_like(sentence) 를 하게 되면 sentence 크기 만큼의 0을 갖는 리스트가 아니라 행을 갖는 행렬이 만들어짐
+			# print(vector)
+			for index, pair in enumerate(sentence):
 				# print(f'index => {index}\npair => {pair}')
 				if pair[0] in vocab_values:
 					vector[index] = 1
-			# print(vector)
+			# print(type(vector))
 			yield vector, target
 		# print(vector, target)
 
 	pos_vector, pos_target = zip(*make_vector(positive, vocab_size, 1.0))
-	# print(f'pos_vector => {pos_vector}\npos_target => {pos_target}')
+	# print(f'pos_vector => {type(pos_vector)}\npos_target => {type(pos_target), pos_target}')
 	neg_vector, neg_target = zip(*make_vector(negative, vocab_size, 0.0))
 	# print(f'neg_vector => {neg_vector}\nneg_target => {neg_target}')
 	dataset = list(zip(pos_vector+neg_vector, pos_target+neg_target))
 	shuffle(dataset)
 	data, target = zip(*dataset)
-	# print(f'data => {data}\ntarget => {target}')
+	# print(f'data => {type(data)}\ntarget => {type(target)}')
 	return data, target
 
 def iteration(data, target, batch_size:int):
