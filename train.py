@@ -6,6 +6,8 @@ from typing import Dict
 positive_path = Path('data/books/positive.review')
 negative_path = Path('data/books/negative.review')
 
+UNK = '<UNK>'
+
 
 def token_freq(path: Path):
     with path.open(mode='r', encoding='utf-8') as data:
@@ -45,6 +47,7 @@ def make_vocabulary(vocab_size: int, counter: Counter) -> Dict[str, int]:
     for index, (token, _) in enumerate(counter.most_common(vocab_size)):
         vocabulary[token] = index
     # print(vocabulary)
+    vocabulary[UNK] = vocabulary.__len__()
     return vocabulary
 
 
