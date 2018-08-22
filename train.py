@@ -74,14 +74,14 @@ def make_data(path: Path, target: int, vocabulary: Dict[str, int]) -> List[Tuple
 def return_with_target(vocab_size: int) -> Tuple[List[List[int]], List[int]]:
     vocabulary = make_vocabulary(vocab_size, Counter())
 
-    pos_vectors, pos_targets = zip(*make_data(positive_path, 1, vocabulary))
-    neg_vectors, neg_targets = zip(*make_data(negative_path, 0, vocabulary))
+    pos_data = make_data(positive_path, 1, vocabulary)
+    neg_data = make_data(negative_path, 0, vocabulary)
 
-    dataset = list(zip(pos_vectors + neg_vectors, pos_targets + neg_targets))
+    dataset = pos_data + neg_data
     shuffle(dataset)
-    data, target = zip(*dataset)
-    # print(f'data => {type(data)}\ntarget => {type(target)}')
-    return data, target
+    data, targets = zip(*dataset)
+    # print(f'data => {type(data)}\ntargets => {type(targets)}')
+    return data, targets
 
 
 def iteration(data, target, batch_size: int):
