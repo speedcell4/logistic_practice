@@ -1,6 +1,7 @@
 from pathlib import Path
 from collections import Counter
 from random import shuffle
+from typing import Dict
 
 positive_path = Path('data/books/positive.review')
 negative_path = Path('data/books/negative.review')
@@ -34,15 +35,15 @@ def count_freq(path: Path, counter: Counter):
     return counter
 
 
-def make_vocabulary(vocab_size: int, counter: Counter):
+def make_vocabulary(vocab_size: int, counter: Counter) -> Dict[str, int]:
     vocabulary = {}
     # print(f'original counter => {counter}')
     count_freq(positive_path, counter)
     # print(f'only pos word => {counter}')
     count_freq(negative_path, counter)
     # print(f'add neg word => {counter}')
-    for index, counted_token in enumerate(counter.most_common(vocab_size)):
-        vocabulary[index + 1] = counted_token
+    for index, (token, _) in enumerate(counter.most_common(vocab_size)):
+        vocabulary[token] = index
     # print(vocabulary)
     return vocabulary
 
@@ -86,4 +87,4 @@ def iteration(data, target, batch_size: int):
 
 
 if __name__ == '__main__':
-    counter = Counter()
+    print(make_vocabulary(100, Counter()))
