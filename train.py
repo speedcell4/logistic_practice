@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections import Counter
 from random import shuffle
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 positive_path = Path('data/books/positive.review')
 negative_path = Path('data/books/negative.review')
@@ -62,6 +62,15 @@ def make_bag_of_word_vector(vocabulary: Dict[str, int], sentence: List[str]) -> 
     return vector
 
 
+def make_data(path: Path, target: int, vocabulary: Dict[str, int]) -> List[Tuple[List[int], int]]:
+    data = []
+    for sentence in token_freq(path):
+        sentence, _ = zip(*sentence)
+        sentence_vector = make_bag_of_word_vector(vocabulary, sentence)
+        data.append((sentence_vector, target))
+    return data
+
+
 def return_with_target(vocab_size: int):
     vocabulary = make_vocabulary(vocab_size, counter)
 
@@ -101,4 +110,5 @@ def iteration(data, target, batch_size: int):
 
 
 if __name__ == '__main__':
-    print(make_vocabulary(100, Counter()))
+    for item in make_data(positive_path, 1, make_vocabulary(100, Counter())):
+        print(item)
