@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections import Counter
 from random import shuffle
-from typing import Dict
+from typing import Dict, List
 
 positive_path = Path('data/books/positive.review')
 negative_path = Path('data/books/negative.review')
@@ -49,6 +49,17 @@ def make_vocabulary(vocab_size: int, counter: Counter) -> Dict[str, int]:
     # print(vocabulary)
     vocabulary[UNK] = vocabulary.__len__()
     return vocabulary
+
+
+def make_bag_of_word_vector(vocabulary: Dict[str, int], sentence: List[str]) -> List[int]:
+    vector = [0] * vocabulary.__len__()
+    for word in sentence:
+        if word in vocabulary:
+            index = vocabulary[word]
+        else:
+            index = vocabulary[UNK]
+        vector[index] = 1
+    return vector
 
 
 def return_with_target(vocab_size: int):
