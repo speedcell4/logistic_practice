@@ -7,6 +7,7 @@ from random import shuffle
 
 positive = Path('/Users/jungwon-c/Documents/ML Logistic/data/books/positive.review')
 negative = Path('/Users/jungwon-c/Documents/ML Logistic/data/books/negative.review')
+counter = Counter()
 
 
 def token_freq(path:Path):
@@ -47,22 +48,24 @@ def make_vocabulary(vocab_size:int, counter:Counter):
 	# print(vocabulary)
 	return vocabulary
 
-def make_vector(path:Path, vocab_size:int, target:float):
-	vocabulary = make_vocabulary(vocab_size, counter)
-	lines = token_freq(path)
-	vocab_values = [value[0] for value in vocabulary.values()]
-	# print(vocab_values)
-	for line in lines:
-		vector = [0] * len(line)
-		for index, pair in enumerate(line):
-			# print(f'index => {index}\npair => {pair}')
-			if pair[0] in vocab_values:
-				vector[index] = 1
-				# print(vector)
-		yield vector, target
-		# print(vector, target)
 
 def return_with_target(vocab_size:int):
+	vocabulary = make_vocabulary(vocab_size, counter)
+
+	def make_vector(path: Path, vocab_size: int, target: float):
+		lines = token_freq(path)
+		vocab_values = [value[0] for value in vocabulary.values()]
+		# print(vocab_values)
+		for line in lines:
+			vector = [0] * len(line)
+			for index, pair in enumerate(line):
+				# print(f'index => {index}\npair => {pair}')
+				if pair[0] in vocab_values:
+					vector[index] = 1
+			# print(vector)
+			yield vector, target
+		# print(vector, target)
+
 	pos_vector, pos_target = zip(*make_vector(positive, vocab_size, 1.0))
 	# print(f'pos_vector => {pos_vector}\npos_target => {pos_target}')
 	neg_vector, neg_target = zip(*make_vector(negative, vocab_size, 0.0))
@@ -70,7 +73,7 @@ def return_with_target(vocab_size:int):
 	dataset = list(zip(pos_vector+neg_vector, pos_target+neg_target))
 	shuffle(dataset)
 	data, target = zip(*dataset)
-	print(f'data => {data}\ntarget => {target}')
+	# print(f'data => {data}\ntarget => {target}')
 	return data, target
 
 def iteration(data, target, batch_size:int):
@@ -81,7 +84,6 @@ def iteration(data, target, batch_size:int):
 
 
 if __name__ == '__main__':
-	counter = Counter()
 	# token_freq(positive)
 	# count_freq(positive, counter)
 	# make_vocabulary(2000, counter)
