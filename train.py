@@ -71,32 +71,13 @@ def make_data(path: Path, target: int, vocabulary: Dict[str, int]) -> List[Tuple
     return data
 
 
-def return_with_target(vocab_size: int):
-    vocabulary = make_vocabulary(vocab_size, counter)
+def return_with_target(vocab_size: int) -> Tuple[List[List[int]], List[int]]:
+    vocabulary = make_vocabulary(vocab_size, Counter())
 
-    def make_vector(path: Path, vocab_size: int, target: float):
-        lines = token_freq(path)
-        vocab_values = [value[0] for value in vocabulary.values()]
-        # print(type(vocab_values))
-        for sentence in lines:
-            # print(sentence)
-            vector = [0] * len(
-                sentence)  # vector = np.zeros_like(sentence) 를 하게 되면 sentence 크기 만큼의 0을 갖는 리스트가 아니라 행을 갖는 행렬이 만들어짐
-            # print(vector)
-            for index, pair in enumerate(sentence):
-                # print(f'index => {index}\npair => {pair}')
-                if pair[0] in vocab_values:
-                    vector[index] = 1
-            # print(type(vector))
-            yield vector, target
+    pos_vectors, pos_targets = zip(*make_data(positive_path, 1, vocabulary))
+    neg_vectors, neg_targets = zip(*make_data(negative_path, 0, vocabulary))
 
-    # print(vector, target)
-
-    pos_vector, pos_target = zip(*make_vector(positive_path, vocab_size, 1.0))
-    # print(f'pos_vector => {type(pos_vector)}\npos_target => {type(pos_target), pos_target}')
-    neg_vector, neg_target = zip(*make_vector(negative_path, vocab_size, 0.0))
-    # print(f'neg_vector => {neg_vector}\nneg_target => {neg_target}')
-    dataset = list(zip(pos_vector + neg_vector, pos_target + neg_target))
+    dataset = list(zip(pos_vectors + neg_vectors, pos_targets + neg_targets))
     shuffle(dataset)
     data, target = zip(*dataset)
     # print(f'data => {type(data)}\ntarget => {type(target)}')
@@ -110,5 +91,8 @@ def iteration(data, target, batch_size: int):
 
 
 if __name__ == '__main__':
-    for item in make_data(positive_path, 1, make_vocabulary(100, Counter())):
-        print(item)
+    data, target = return_with_target(100)
+    print(data)
+    print(target)
+    print(data.__len__())
+    print(target.__len__())
