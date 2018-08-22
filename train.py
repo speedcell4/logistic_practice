@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections import Counter
 from random import shuffle
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Generator
 
 positive_path = Path('data/books/positive.review')
 negative_path = Path('data/books/negative.review')
@@ -84,15 +84,13 @@ def return_with_target(vocab_size: int) -> Tuple[List[List[int]], List[int]]:
     return data, targets
 
 
-def iteration(data, target, batch_size: int):
-    for sample_num in range(0, len(data) + 1, batch_size):
-        yield data[sample_num * batch_size: (sample_num + 1) * batch_size], \
-              target[sample_num * batch_size: (sample_num + 1) * batch_size]
+def iteration(data: List[List[int]], targets: List[int], batch_size: int) \
+        -> Generator[Tuple[List[List[int]], List[int]], None, None]:
+    for index in range(0, len(data), batch_size):
+        yield data[index: index + batch_size], targets[index: index + batch_size]
 
 
 if __name__ == '__main__':
-    data, target = return_with_target(100)
-    print(data)
-    print(target)
-    print(data.__len__())
-    print(target.__len__())
+    data, targets = return_with_target(100)
+    for datum, target in iteration(data, targets, 2):
+        print(datum, target)
