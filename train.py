@@ -2,13 +2,12 @@ from pathlib import Path
 from collections import Counter
 from random import shuffle
 
-positive = Path('data/books/positive.review')
-negative = Path('data/books/negative.review')
-counter = Counter()
+positive_path = Path('data/books/positive.review')
+negative_path = Path('data/books/negative.review')
 
 
 def token_freq(path: Path):
-    with open(path) as data:
+    with path.open(mode='r', encoding='utf-8') as data:
         lines = []
         for line in data:
             sentence = []
@@ -38,9 +37,9 @@ def count_freq(path: Path, counter: Counter):
 def make_vocabulary(vocab_size: int, counter: Counter):
     vocabulary = {}
     # print(f'original counter => {counter}')
-    count_freq(positive, counter)
+    count_freq(positive_path, counter)
     # print(f'only pos word => {counter}')
-    count_freq(negative, counter)
+    count_freq(negative_path, counter)
     # print(f'add neg word => {counter}')
     for index, counted_token in enumerate(counter.most_common(vocab_size)):
         vocabulary[index + 1] = counted_token
@@ -69,9 +68,9 @@ def return_with_target(vocab_size: int):
 
     # print(vector, target)
 
-    pos_vector, pos_target = zip(*make_vector(positive, vocab_size, 1.0))
+    pos_vector, pos_target = zip(*make_vector(positive_path, vocab_size, 1.0))
     # print(f'pos_vector => {type(pos_vector)}\npos_target => {type(pos_target), pos_target}')
-    neg_vector, neg_target = zip(*make_vector(negative, vocab_size, 0.0))
+    neg_vector, neg_target = zip(*make_vector(negative_path, vocab_size, 0.0))
     # print(f'neg_vector => {neg_vector}\nneg_target => {neg_target}')
     dataset = list(zip(pos_vector + neg_vector, pos_target + neg_target))
     shuffle(dataset)
@@ -87,8 +86,4 @@ def iteration(data, target, batch_size: int):
 
 
 if __name__ == '__main__':
-    # token_freq(positive)
-    # count_freq(positive, counter)
-    # make_vocabulary(2000, counter)
-    # make_vector(negative, 2000)
-    return_with_target(200)
+    counter = Counter()
