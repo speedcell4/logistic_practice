@@ -8,85 +8,64 @@ def sigmoid(x):
 
 
 class Classifier(object):
-    def __init__(self, input_size):
+    def __init__(self, input_size: int):
         self.input_size = input_size
         self.W = np.random.random(input_size)
-        self.b = np.array([0.])
+        self.b = np.array(0.)
 
     def forward(self, x):
         z = x @ self.W + self.b
         return sigmoid(z)
 
-    def backward(self, input_data, output, target):  # backward = back propagation
+    def backward(self, x, y, t):  # backward = back propagation
         # 로지스틱 회귀의 최적화는 backward를 계산하는 것이며 이의 값은 광배법을 위한 값이 된다.
-        grad = -sum((target + output - 2 * target * output) @ input_data)
-        return grad
+        # print(f'x.shape => {x.shape}')
+        # print(f'y.shape => {y.shape}')
+        # print(f't.shape => {t.shape}')
+        return (y - t) @ x / x.shape[0], (y - t).mean()
 
 
-def loss(output, target):
-    lossfunc = -sum((target * np.log(output)) + (1 - target) * np.log(1 - output))
+def cross_entropy(y, t) -> float:
+    # sometime y will be zero and then this results will come to be infinity, so we add a small enough
+    # number (eps) to void this
+    loss = -((t * np.log(y + np.finfo(np.float32).eps)) + (1. - t) * np.log(1. - y + np.finfo(np.float32).eps)).mean()
+    return loss.__float__()
     # 곱하기 * 를 사용하면 sum을 사용해야 하지만 다 내적으로 곱해버리면 sum은 필요없음
     # x 내적 y = sum(x_i * y_i) 그렇지! 직접 행렬로 적어서 보면 아는 것을...
-    return np.mean(lossfunc)
 
 
-def accuracy(output, target):
-    acc = []
-    for y, t in zip(output, target):
-        if int(y >= 0.5) is int(t):
-            acc.append(y)
-    return np.mean(acc)
+def accuracy_score(y, t) -> float:
+    y = np.array([y_i > 0.5 for y_i in y], dtype=np.int32)
+    t = np.array(t, dtype=np.int32)
+    # manipulate data one np.ndarray level will always more easily to understand
+    # your original code returns the mean of correct predicted probabilities, that does not make sense
+    return (y == t).mean().__float__()
 
 
-def make_multi_array(data_tuple: tuple):
-    length_list = []
-    for data_list in data_tuple:
-        if type(data_list) is list:
-            # print(f'type(data_list) => {type(data_list)}')
-            # print(f'data_list => {data_list}')
-            length = len(data_list)
-            # print(length)
-            length_list.append(length)
-        else:
-            pass
-    print(length_list)
-
-    maxlen = max(length_list, default=0)
-    # print(maxlen)
-    matrix = np.array([])
-    for index, lens in enumerate(length_list):
-        if lens < maxlen:
-            zeros = np.zeros(maxlen)
-            # print(zeros)
-            zeros[:lens] = data_tuple[index]
-            np.append(matrix, zeros)
-        else:
-            pass
-    print(matrix)
-    return matrix
-
-
-def train(vocab_size: int = 1000, epoch_num: int = 20, batch_size: int = 32, step_size: float = 0.05):
-    data, target = return_with_target(vocab_size)
-    # print(f'data => {len(data)}\ntarget => {len(target)}')
-    logistic = Classifier(vocab_size)
+def train(vocab_size: int = 1000, epoch_num: int = 100, batch_size: int = 8, learning_rate: float = 0.1):
+    data, targets = return_with_target(vocab_size)
+    data = np.array(data, dtype=np.float32)
+    targets = np.array(targets, dtype=np.float32)
+    # print(f'data => {len(data)}\ntargets => {len(targets)}')
+    # since we add another UNK token, the vocabulary size need to increase one
+    logistic = Classifier(vocab_size + 1)
 
     for epoch in range(epoch_num):
-        for input_data, t in iteration(data, target, batch_size):
-            # print(f'datum => {len(input_data)}\nanswer => {len(t)}')
-            data_array = make_multi_array(input_data)
-            # print(f'data_array => {data_array}')
-            target_array = make_multi_array(t)
-            # print(f'target_array => {target_array}')
 
-            output = logistic.forward(data_array)
-            grad = logistic.backward(data_array, output, target_array)
-            logistic.W += step_size * grad
+        for x, t in iteration(data, targets, batch_size):
+            y = logistic.forward(x)
 
-        outputs = logistic.forward(np.matrix(data))
-        acc_score = accuracy(outputs, np.array(target))
-        loss_score = loss(outputs, np.array(target))
-        print(f'accuracy => {acc_score:.2f} \ loss => {loss_score:.2f}')
+            grad_W, grad_b = logistic.backward(x, y, t)
+            logistic.W -= learning_rate * grad_W
+            logistic.b -= learning_rate * grad_b
+
+            # print(y)
+
+        outputs = logistic.forward(data)
+        acc_score = accuracy_score(outputs, targets)
+        # print(acc_score)
+        loss_score = cross_entropy(outputs, targets)
+        print(f'[epoch {epoch:02d}] accuracy => {acc_score:.2f}, loss => {loss_score:.2f}')
 
 
 if __name__ == '__main__':
